@@ -1,0 +1,157 @@
+
+final_data = readRDS("final_data.RDS")
+
+library(survival)
+
+reg.star = coxph(Surv(start, f.up_day, death.status) ~ exposure, data = final_data)
+coef.star = coef(reg.star)
+var.star = reg.star$var
+
+####  SIMEX EXTRAPOLATION STEP ####
+
+B = 25
+a = 9/10
+#M = 10
+
+estimates_bin = matrix(NA, nrow = B, ncol = 11)
+var.estimates_bin = matrix(NA,B,11)
+
+for (b in c(1:B)) {
+  
+  ## CREATING X** ##
+  
+  #Randomly removing exposure days#
+  
+  exposure_days = sequence(final_data$exposure_lenght)
+  
+  exposure_days_list = split(exposure_days, cumsum(exposure_days == 1))
+  
+  for(u in 1:10) { 
+    nam <- paste("number_removed_exposure_days_SIMEX_step", u, sep = "")
+    assign(nam,  final_data$exposure_lenght[final_data$exposure_lenght!=0] - 
+             round(final_data$exposure_lenght[final_data$exposure_lenght!=0]*(a)^u))
+    
+    nam2 <- paste("removed_SIMEX_days_step", u, sep = "")
+    assign(nam2, list())
+    
+    nam3 <- paste("exposure_removal_SIMEX_step", u, sep = "")
+    assign(nam3, c())
+    
+  }
+  
+  for (t in c(1:length(exposure_days_list))) {
+    removed_SIMEX_days_step1[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step1[t], replace = F)
+    exposure_removal_SIMEX_step1 = c(exposure_removal_SIMEX_step1, exposure_days_list[[t]] %in% removed_SIMEX_days_step1[[t]])
+    
+    removed_SIMEX_days_step2[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step2[t], replace = F)
+    exposure_removal_SIMEX_step2 = c(exposure_removal_SIMEX_step2, exposure_days_list[[t]] %in% removed_SIMEX_days_step2[[t]])
+    
+    removed_SIMEX_days_step3[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step3[t], replace = F)
+    exposure_removal_SIMEX_step3 = c(exposure_removal_SIMEX_step3, exposure_days_list[[t]] %in% removed_SIMEX_days_step3[[t]])
+    
+    removed_SIMEX_days_step4[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step4[t], replace = F)
+    exposure_removal_SIMEX_step4 = c(exposure_removal_SIMEX_step4, exposure_days_list[[t]] %in% removed_SIMEX_days_step4[[t]])
+    
+    removed_SIMEX_days_step5[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step5[t], replace = F)
+    exposure_removal_SIMEX_step5 = c(exposure_removal_SIMEX_step5, exposure_days_list[[t]] %in% removed_SIMEX_days_step5[[t]])
+    
+    removed_SIMEX_days_step6[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step6[t], replace = F)
+    exposure_removal_SIMEX_step6 = c(exposure_removal_SIMEX_step6, exposure_days_list[[t]] %in% removed_SIMEX_days_step6[[t]])
+    
+    removed_SIMEX_days_step7[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step7[t], replace = F)
+    exposure_removal_SIMEX_step7 = c(exposure_removal_SIMEX_step7, exposure_days_list[[t]] %in% removed_SIMEX_days_step7[[t]])
+    
+    removed_SIMEX_days_step8[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step8[t], replace = F)
+    exposure_removal_SIMEX_step8 = c(exposure_removal_SIMEX_step8, exposure_days_list[[t]] %in% removed_SIMEX_days_step8[[t]])
+    
+    removed_SIMEX_days_step9[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step9[t], replace = F)
+    exposure_removal_SIMEX_step9 = c(exposure_removal_SIMEX_step9, exposure_days_list[[t]] %in% removed_SIMEX_days_step9[[t]])
+    
+    removed_SIMEX_days_step10[[t]] = sample(exposure_days_list[[t]], number_removed_exposure_days_SIMEX_step10[t], replace = F)
+    exposure_removal_SIMEX_step10 = c(exposure_removal_SIMEX_step10, exposure_days_list[[t]] %in% removed_SIMEX_days_step10[[t]])
+  }
+  
+  final_data$exposure_SIMEX_step1 = final_data$exposure*(!exposure_removal_SIMEX_step1)
+  final_data$exposure_SIMEX_step2 = final_data$exposure*(!exposure_removal_SIMEX_step2)
+  final_data$exposure_SIMEX_step3 = final_data$exposure*(!exposure_removal_SIMEX_step3)
+  final_data$exposure_SIMEX_step4 = final_data$exposure*(!exposure_removal_SIMEX_step4)
+  final_data$exposure_SIMEX_step5 = final_data$exposure*(!exposure_removal_SIMEX_step5)
+  final_data$exposure_SIMEX_step6 = final_data$exposure*(!exposure_removal_SIMEX_step6)
+  final_data$exposure_SIMEX_step7 = final_data$exposure*(!exposure_removal_SIMEX_step7)
+  final_data$exposure_SIMEX_step8 = final_data$exposure*(!exposure_removal_SIMEX_step8)
+  final_data$exposure_SIMEX_step9 = final_data$exposure*(!exposure_removal_SIMEX_step9)
+  final_data$exposure_SIMEX_step10 = final_data$exposure*(!exposure_removal_SIMEX_step10)
+  
+  
+  #Binary resampling version#
+  
+  final_data$exposure_SIMEX_step1_bin = rbinom(nrow(final_data), 1, a*final_data$exposure)
+  final_data$exposure_SIMEX_step2_bin = rbinom(nrow(final_data), 1, (a)^2*final_data$exposure)
+  final_data$exposure_SIMEX_step3_bin = rbinom(nrow(final_data), 1, (a)^3*final_data$exposure)
+  final_data$exposure_SIMEX_step4_bin = rbinom(nrow(final_data), 1, (a)^4*final_data$exposure)
+  final_data$exposure_SIMEX_step5_bin = rbinom(nrow(final_data), 1, (a)^5*final_data$exposure)
+  final_data$exposure_SIMEX_step6_bin = rbinom(nrow(final_data), 1, (a)^6*final_data$exposure)
+  final_data$exposure_SIMEX_step7_bin = rbinom(nrow(final_data), 1, (a)^7*final_data$exposure)
+  final_data$exposure_SIMEX_step8_bin = rbinom(nrow(final_data), 1, (a)^8*final_data$exposure)
+  final_data$exposure_SIMEX_step9_bin = rbinom(nrow(final_data), 1, (a)^9*final_data$exposure)
+  final_data$exposure_SIMEX_step10_bin = rbinom(nrow(final_data), 1, (a)^10*final_data$exposure)
+  
+  #Step 1
+  
+  #FINAL SIMEX DATA
+  
+  final_data_SIMEX = merge(final_data, final_data[,c("exposure_id", "f.up_day",
+                                                            "exposure_SIMEX_step1",
+                                                            "exposure_SIMEX_step2",
+                                                            "exposure_SIMEX_step3",
+                                                            "exposure_SIMEX_step4",
+                                                            "exposure_SIMEX_step5",
+                                                            "exposure_SIMEX_step6",
+                                                            "exposure_SIMEX_step7",
+                                                            "exposure_SIMEX_step8",
+                                                            "exposure_SIMEX_step9",
+                                                            "exposure_SIMEX_step10")],
+                           all.x = T, 
+                           by = c("exposure_id", "f.up_day"), 
+                           sort = F)
+  
+  
+  ##### RESULTS #####
+  
+  # Binary indicator of daily drug exposure #
+  
+  SIMEX_steps = function(x,dat){
+    reg.SIMEX = coxph(Surv(start, f.up_day, death.status) ~ x, data = dat)
+    coefs = reg.SIMEX$coef
+    vars = reg.SIMEX$var
+    return(c(coefs,vars))
+  }
+  
+  estimates_bin[b,] = apply(final_data_SIMEX[,c(5,7:16)],2, SIMEX_steps, final_data_SIMEX)[1,]
+  var.estimates_bin[b,] = apply(final_data_SIMEX[,c(5,7:16)],2, SIMEX_steps, final_data_SIMEX)[2,]
+  
+}
+
+estimates_bin.mean = colMeans(estimates_bin)
+jack_var_1 = colMeans(var.estimates_bin)
+jack_var_2 = apply(estimates_bin, 2, var)
+jack_var = jack_var_1 - jack_var_2
+
+### OUTPUT ###
+
+# AVERAGE MPR
+
+average.MPR = mean(aggregate(final_data$exposure_MPR[which(final_data$RX_day == 1 & final_data$exposure_last.RX != 1)],
+                                list(final_data$exposure_id[which(final_data$RX_day == 1 & final_data$exposure_last.RX != 1)]), FUN=mean)[,2])
+
+MPR.SIMEX = average.MPR*((a)^c(0:10))
+
+# SIMEX EXTRAPOLATION #
+
+coef.SIMEX.lin = coef(lm(estimates_bin.mean ~ MPR.SIMEX))%*%c(1,1)
+var.SIMEX.lin = coef(lm(jack_var ~ MPR.SIMEX))%*%c(1,1)
+
+coefficient.results = c(coef.star,
+                        var.star,
+                        coef.SIMEX.lin,
+                        var.SIMEX.lin)
